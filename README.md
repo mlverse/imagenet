@@ -89,9 +89,18 @@ remotes::install_github("rstudio/pins")
 
 ```r
 library(pins)
+board_register("gcloud", bucket = "imagenet-pins")
 
 pin_get("c/imagenet-object-localization-challenge", board = "kaggle") %>%
   pin("imagenet", board = "gcloud", retrieve = FALSE)
+```
+
+Repartition by category and upload,
+
+```
+for (path in dir("/localssd/imagenet/ILSVRC/Data/CLS-LOC/train/", full.names = TRUE)) {
+  dir(path, full.names = TRUE) %>% pin(name = basename(path), board = "gcloud", zip = TRUE)
+}
 ```
 
 Retrieve imagenet from Google Storage,
