@@ -3,9 +3,9 @@
 ```
 gcloud init
 
-gcloud beta compute --project=rstudio-cloudml instances create tfimagenet --zone=us-central1-c --machine-type=n1-standard-4 --subnet=default --network-tier=PREMIUM --maintenance-policy=TERMINATE --service-account=226719675476-compute@developer.gserviceaccount.com --scopes=https://www.googleapis.com/auth/devstorage.read_only,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring.write,https://www.googleapis.com/auth/servicecontrol,https://www.googleapis.com/auth/service.management.readonly,https://www.googleapis.com/auth/trace.append --accelerator=type=nvidia-tesla-k80,count=1 --image=c0-common-gce-gpu-image-20200128 --image-project=ml-images --boot-disk-size=500GB --boot-disk-type=pd-standard --boot-disk-device-name=tfimagenet --reservation-affinity=any
+gcloud beta compute --project=rstudio-cloudml instances create-with-container imagenet-2 --zone=us-central1-c --machine-type=n1-standard-8 --subnet=default --network-tier=PREMIUM --metadata=google-logging-enabled=true --maintenance-policy=TERMINATE --service-account=226719675476-compute@developer.gserviceaccount.com --scopes=https://www.googleapis.com/auth/devstorage.read_only,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring.write,https://www.googleapis.com/auth/servicecontrol,https://www.googleapis.com/auth/service.management.readonly,https://www.googleapis.com/auth/trace.append --accelerator=type=nvidia-tesla-k80,count=1 --image=cos-stable-81-12871-1160-0 --image-project=cos-cloud --boot-disk-size=10GB --boot-disk-type=pd-standard --boot-disk-device-name=imagenet-2 --local-ssd=interface=NVME --local-ssd=interface=NVME --local-ssd=interface=NVME --local-ssd=interface=NVME --container-image=mlverse/mlverse-base:version-0.2.2 --container-restart-policy=always --labels=container-vm=cos-stable-81-12871-1160-0
 
-gcloud compute ssh tfimagenet
+gcloud compute ssh tf-imagenet
 
 wget http://us.download.nvidia.com/tesla/440.95.01/NVIDIA-Linux-x86_64-440.95.01.run
 chmod +x NVIDIA-Linux-x86_64-440.95.01.run
@@ -15,6 +15,9 @@ sudo ./NVIDIA-Linux-x86_64-440.95.01.run
 Format Local SSD properly, see [google.com/compute/docs/dist/local-ssd](https://cloud.google.com/compute/docs/disks/local-ssd#format_and_mount_a_local_ssd_device). We also [disable write cache flushing](https://cloud.google.com/compute/docs/disks/optimizing-local-ssd-performance#disable_flush) to improve local SDD performance.
 
 ```
+sudo apt update
+sudo apt install mdadm
+
 lsblk
 yes | sudo mdadm --create /dev/md0 --level=0 --raid-devices=4 /dev/nvme0n1 /dev/nvme0n2 /dev/nvme0n3 /dev/nvme0n4
 sudo mkfs.ext4 -F /dev/md0
