@@ -99,6 +99,7 @@ Repartition by category and upload,
 
 ```
 for (path in dir("/localssd/imagenet/ILSVRC/Data/CLS-LOC/train/", full.names = TRUE)) {
+  if (runif(1) > 0.9) pins::pin(mtcars, board = "gcloud")
   dir(path, full.names = TRUE) %>% pin(name = basename(path), board = "gcloud", zip = TRUE)
 }
 ```
