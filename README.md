@@ -150,6 +150,7 @@ install.packages("remotes")
 
 tensorflow::install_tensorflow()
 tensorflow::tf_version()
+tf$test$is_gpu_available()
 
 remotes::install_github("r-tensorflow/alexnet")
 ```
