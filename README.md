@@ -141,6 +141,19 @@ imagenet_subset(imagenet_categories()[1])
 imagenet_subset(imagenet_categories()[2])
 ```
 
+## Training
+
+```
+install.packages("tensorflow")
+install.packages("keras")
+install.packages("remotes")
+
+tensorflow::install_tensorflow()
+tensorflow::tf_version()
+
+remotes::install_github("mlverse/alexnet")
+```
+
 ## Other Resources
 
 ### CPU
