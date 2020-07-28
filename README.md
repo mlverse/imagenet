@@ -148,7 +148,7 @@ install.packages("tensorflow")
 install.packages("keras")
 install.packages("remotes")
 
-tensorflow::install_tensorflow()
+tensorflow::install_tensorflow(version = "gpu")
 tensorflow::tf_version()
 tf$test$is_gpu_available()
 
