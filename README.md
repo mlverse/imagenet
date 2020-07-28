@@ -99,7 +99,10 @@ Repartition by category and upload,
 
 ```
 for (path in dir("/localssd/imagenet/ILSVRC/Data/CLS-LOC/train/", full.names = TRUE)) {
-  if (runif(1) > 0.9) pins::pin(mtcars, board = "gcloud")
+  # re-register board every 10 uploads to refresh authentication headers
+  if (runif(1) > 0.9) board_rergister("gcloud", bucket = "imagenet-pins")
+  
+  # upload imagenet partition
   dir(path, full.names = TRUE) %>% pin(name = basename(path), board = "gcloud", zip = TRUE)
 }
 ```
