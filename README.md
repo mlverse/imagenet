@@ -151,7 +151,7 @@ install.packages("remotes")
 tensorflow::install_tensorflow()
 tensorflow::tf_version()
 
-remotes::install_github("mlverse/alexnet")
+remotes::install_github("r-tensorflow/alexnet")
 ```
 
 ## Other Resources
