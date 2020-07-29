@@ -33,13 +33,85 @@ docker pull mlverse/mlverse-base:version-0.2.2
 docker run --gpus all --network host -v /mnt/disks/localssd:/localssd -d mlverse/mlverse-base:version-0.2.2
 ```
 
-## R Configuration
+## Data Preprocessing
+
+**Note:** You can potentially skip this section and reuse our public `r-imagenet` bucket which contains the partitioned dataset already.
+
+We will preprocess ImageNet once in a single instance to partition in advance to support faster download times when running distributed.
 
 ```
 mkdir /localssd/tmp
 echo 'TMP=/localssd/tmp' > .Renviron
 echo 'options(pins.path = "/localssd/pins")' > .Rprofile
 ```
+
+```r
+install.packages("remotes")
+remotes::install_github("rstudio/pins")
+```
+
+Retrieve ImageNet, which might take a couple hours:
+
+```r
+pins::pin_get("c/imagenet-object-localization-challenge", board = "kaggle")[1] %>%
+  untar(exdir = "/localssd/imagenet/")
+```
+
+Configure Google Cloud,
+
+```bash
+sudo apt-get install apt-transport-https ca-certificates gnupg curl
+curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-302.0.0-linux-x86_64.tar.gz
+tar zxvf google-cloud-sdk-302.0.0-linux-x86_64.tar.gz google-cloud-sdk
+echo "export PATH=\$PATH:~/google-cloud-sdk/bin/" > ~/.profile
+gcloud init
+```
+
+Upload categories as a pin, which we manually downloaded from [ImageNet Classes Codes](https://www.quora.com/Where-can-I-find-the-semantic-labels-for-the-1000-ImageNet-ILSVRC2012-classes-codes) and saved as a CSV:
+
+```
+board_register("gcloud", name = "imagenet", bucket = "r-imagenet")
+read.delim("categories.txt", sep = "|") %>% pin("categories", board = "imagenet")
+```
+
+Repartition by category and upload,
+
+```
+for (path in dir("/localssd/imagenet/ILSVRC/Data/CLS-LOC/train/", full.names = TRUE)) {
+  # re-register board every 10 uploads to refresh authentication headers
+  if (runif(1) > 0.9) r
+    board_register("gcloud", name = "imagenet", bucket = "r-imagenet")
+  
+  # upload imagenet partition
+  dir(path, full.names = TRUE) %>% pin(name = basename(path), board = "imagenet", zip = TRUE)
+}
+```
+
+## Training Dry Run
+
+Install dependencies,
+
+```
+install.packages("tensorflow")
+install.packages("keras")
+install.packages("remotes")
+
+remotes::install_github("rstudio/pins")
+remotes::install_github("r-tensorflow/alexnet")
+
+tensorflow::install_tensorflow(version = "gpu")
+tensorflow::tf_version()
+tf$test$is_gpu_available()
+```
+
+Retrieve ImageNet subset from Google Storage,
+
+```r
+categories <- pins::pin_get("categories", board = "https://storage.googleapis.com/imagenet-pins/")
+category_one <- pins::pin_get(categories[1], board = "https://storage.googleapis.com/imagenet-pins/")
+```
+
+## Training Distributed
 
 Configure Spark,
 
@@ -64,95 +136,6 @@ Connect to Spark from R driver,
 
 ```
 sc <- spark_connect(master = "spark://tfimagenet.c.rstudio-cloudml.internal:7077", spark_home = "/home/rstudio/spark/spark-2.4.3-bin-hadoop2.7/")
-```
-
-Retrieve ImageNet,
-
-```r
-pins::pin_get("c/imagenet-object-localization-challenge", board = "kaggle")
-# untar(pins::pin_get("c/imagenet-object-localization-challenge", board = "kaggle")[1], exdir = "imagenet/")
-```
-
-Configure Google Cloud for re-upload,
-
-```bash
-sudo apt-get install apt-transport-https ca-certificates gnupg curl
-curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-302.0.0-linux-x86_64.tar.gz
-tar zxvf google-cloud-sdk-302.0.0-linux-x86_64.tar.gz google-cloud-sdk
-echo "export PATH=\$PATH:~/google-cloud-sdk/bin/" > ~/.profile
-gcloud init
-```
-
-Reupload ImageNet, strictly encouraged to use devel version of pins to avoid copying 250GB twice,
-
-```r
-install.packages("remotes")
-remotes::install_github("rstudio/pins")
-```
-
-```r
-library(pins)
-board_register("gcloud", bucket = "imagenet-pins")
-
-pin_get("c/imagenet-object-localization-challenge", board = "kaggle") %>%
-  pin("imagenet", board = "gcloud", retrieve = FALSE)
-```
-
-Repartition by category and upload,
-
-```
-for (path in dir("/localssd/imagenet/ILSVRC/Data/CLS-LOC/train/", full.names = TRUE)) {
-  # re-register board every 10 uploads to refresh authentication headers
-  if (runif(1) > 0.9) board_register("gcloud", bucket = "imagenet-pins")
-  
-  # upload imagenet partition
-  dir(path, full.names = TRUE) %>% pin(name = basename(path), board = "gcloud", zip = TRUE)
-}
-```
-
-Retrieve imagenet from Google Storage,
-
-```r
-imagenet <- pins::pin_get("imagenet", board = "https://storage.googleapis.com/imagenet-pins/")
-untar(imagenet[1], exdir = "/localssd/imagenet/")
-```
-
-Retrieve ImageNet subset,
-
-```
-dir.create("small")
-
-imagenet_categories <- function() {
-  dir("imagenet/ILSVRC/Data/CLS-LOC/train")
-}
-
-imagenet_subset <- function(category = "n01440764") {
-  dest <- file.path("small", category)
-  dir.create(dest, recursive = TRUE)
-  file.copy(
-    dir(file.path("imagenet/ILSVRC/Data/CLS-LOC/train", category), full.names = TRUE),
-    dest
-  )
-  
-  length(dir(dest))
-}
-
-imagenet_subset(imagenet_categories()[1])
-imagenet_subset(imagenet_categories()[2])
-```
-
-## Training
-
-```
-install.packages("tensorflow")
-install.packages("keras")
-install.packages("remotes")
-
-tensorflow::install_tensorflow(version = "gpu")
-tensorflow::tf_version()
-tf$test$is_gpu_available()
-
-remotes::install_github("r-tensorflow/alexnet")
 ```
 
 ## Other Resources
