@@ -101,7 +101,7 @@ remotes::install_github("r-tensorflow/alexnet")
 
 tensorflow::install_tensorflow(version = "gpu")
 tensorflow::tf_version()
-tf$test$is_gpu_available()
+tensorflow::tf$test$is_gpu_available()
 ```
 
 Retrieve ImageNet subset from Google Storage,
