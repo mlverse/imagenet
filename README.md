@@ -7,9 +7,9 @@ gcloud beta compute --project=rstudio-cloudml instances create-with-container im
 
 gcloud compute ssh tf-imagenet
 
-wget http://us.download.nvidia.com/tesla/440.95.01/NVIDIA-Linux-x86_64-440.95.01.run
-chmod +x NVIDIA-Linux-x86_64-440.95.01.run
-sudo ./NVIDIA-Linux-x86_64-440.95.01.run
+wget http://us.download.nvidia.com/tesla/418.152.00/NVIDIA-Linux-x86_64-418.152.00.run
+chmod +x NVIDIA-Linux-x86_64-418.152.00.run
+sudo ./NVIDIA-Linux-x86_64-418.152.00.run
 ```
 
 Format Local SSD properly, see [google.com/compute/docs/dist/local-ssd](https://cloud.google.com/compute/docs/disks/local-ssd#format_and_mount_a_local_ssd_device). We also [disable write cache flushing](https://cloud.google.com/compute/docs/disks/optimizing-local-ssd-performance#disable_flush) to improve local SDD performance.
