@@ -3,7 +3,7 @@
 ```
 gcloud init
 
-gcloud beta compute --project=rstudio-cloudml instances create-with-container imagenet-2 --zone=us-central1-c --machine-type=n1-standard-8 --subnet=default --network-tier=PREMIUM --metadata=google-logging-enabled=true --maintenance-policy=TERMINATE --service-account=226719675476-compute@developer.gserviceaccount.com --scopes=https://www.googleapis.com/auth/devstorage.read_only,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring.write,https://www.googleapis.com/auth/servicecontrol,https://www.googleapis.com/auth/service.management.readonly,https://www.googleapis.com/auth/trace.append --accelerator=type=nvidia-tesla-k80,count=1 --image=cos-stable-81-12871-1160-0 --image-project=cos-cloud --boot-disk-size=10GB --boot-disk-type=pd-standard --boot-disk-device-name=imagenet-2 --local-ssd=interface=NVME --local-ssd=interface=NVME --local-ssd=interface=NVME --local-ssd=interface=NVME --container-image=mlverse/mlverse-base:version-0.2.2 --container-restart-policy=always --labels=container-vm=cos-stable-81-12871-1160-0
+gcloud beta compute --project=rstudio-cloudml instances create-with-container imagenet-2 --zone=us-central1-c --machine-type=n1-standard-8 --subnet=default --network-tier=PREMIUM --metadata=google-logging-enabled=true --maintenance-policy=TERMINATE --service-account=226719675476-compute@developer.gserviceaccount.com --scopes=https://www.googleapis.com/auth/devstorage.read_only,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring.write,https://www.googleapis.com/auth/servicecontrol,https://www.googleapis.com/auth/service.management.readonly,https://www.googleapis.com/auth/trace.append --accelerator=type=nvidia-tesla-k80,count=1 --image=cos-stable-81-12871-1160-0 --image-project=cos-cloud --boot-disk-size=10GB --boot-disk-type=pd-standard --boot-disk-device-name=imagenet-2 --local-ssd=interface=NVME --local-ssd=interface=NVME --local-ssd=interface=NVME --local-ssd=interface=NVME --container-image=mlverse/mlverse-base:version-0.2.3 --container-restart-policy=always --labels=container-vm=cos-stable-81-12871-1160-0
 
 gcloud compute ssh tf-imagenet
 
@@ -29,8 +29,8 @@ sudo chmod a+w /mnt/disks/localssd
 Run the image with the right volume,
 
 ```
-docker pull mlverse/mlverse-base:version-0.2.2
-docker run --gpus all --network host -v /mnt/disks/localssd:/localssd -d mlverse/mlverse-base:version-0.2.2
+docker pull mlverse/mlverse-base:version-0.2.3
+docker run --gpus all --network host -v /mnt/disks/localssd:/localssd -d mlverse/mlverse-base:version-0.2.3
 ```
 
 ## Data Preprocessing
