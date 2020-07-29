@@ -108,7 +108,24 @@ Retrieve ImageNet subset from Google Storage,
 
 ```r
 categories <- pins::pin_get("categories", board = "https://storage.googleapis.com/r-imagenet/")
-category_one <- pins::pin_get(categories$id[1], board = "https://storage.googleapis.com/r-imagenet/")
+category_one <- pins::pin_get(categories$id[1], board = "https://storage.googleapis.com/r-imagenet/", extract = TRUE)
+tibble::as_tibble(category_one)
+```
+```
+# A tibble: 1,300 x 1
+   value                                                           
+   <chr>                                                           
+ 1 /home/rstudio/.cache/pins/storage/n01440764/n01440764_10026.JPEG
+ 2 /home/rstudio/.cache/pins/storage/n01440764/n01440764_10027.JPEG
+ 3 /home/rstudio/.cache/pins/storage/n01440764/n01440764_10029.JPEG
+ 4 /home/rstudio/.cache/pins/storage/n01440764/n01440764_10040.JPEG
+ 5 /home/rstudio/.cache/pins/storage/n01440764/n01440764_10042.JPEG
+ 6 /home/rstudio/.cache/pins/storage/n01440764/n01440764_10043.JPEG
+ 7 /home/rstudio/.cache/pins/storage/n01440764/n01440764_10048.JPEG
+ 8 /home/rstudio/.cache/pins/storage/n01440764/n01440764_10066.JPEG
+ 9 /home/rstudio/.cache/pins/storage/n01440764/n01440764_10074.JPEG
+10 /home/rstudio/.cache/pins/storage/n01440764/n01440764_1009.JPEG 
+# … with 1,290 more rows
 ```
 
 ## Training Distributed
