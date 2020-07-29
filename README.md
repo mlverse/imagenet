@@ -104,11 +104,22 @@ tensorflow::tf_version()
 tensorflow::tf$test$is_gpu_available()
 ```
 
+Test train alexnet with Tiny ImageNet,
+
+```r
+library(tensorflow)
+tf_version()
+
+alexnet::alexnet_train()
+```
+
 Retrieve ImageNet subset from Google Storage,
 
 ```r
 categories <- pins::pin_get("categories", board = "https://storage.googleapis.com/r-imagenet/")
 category_one <- pins::pin_get(categories$id[1], board = "https://storage.googleapis.com/r-imagenet/", extract = TRUE)
+category_two <- pins::pin_get(categories$id[2], board = "https://storage.googleapis.com/r-imagenet/", extract = TRUE)
+
 tibble::as_tibble(category_one)
 ```
 ```
@@ -128,10 +139,16 @@ tibble::as_tibble(category_one)
 # … with 1,290 more rows
 ```
 
-Test train alexnet with tiny imagenet
+Train with ImageNet subset,
 
 ```r
-alexnet::alexnet_train()
+data <- list(
+  image = c(category_one, category_two),
+  category = c(rep(categories$id[1], length(category_one)), rep(categories$id[2], length(category_two))),
+  categories = categories$id
+)
+
+alexnet::alexnet_train(data = data)
 ```
 
 ## Training Distributed
