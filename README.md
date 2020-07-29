@@ -128,6 +128,12 @@ tibble::as_tibble(category_one)
 # … with 1,290 more rows
 ```
 
+Test train alexnet with tiny imagenet
+
+```r
+alexnet::alexnet_train()
+```
+
 ## Training Distributed
 
 Configure Spark,
