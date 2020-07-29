@@ -177,15 +177,18 @@ while (any(sapply(procs, function(p) p$is_alive()))) Sys.sleep(1)
 We can then prepare the paratition for training, and train:
 
 ```
+pins::board_register_datatxt("https://storage.googleapis.com/r-imagenet/", "imagenet")
 data <- list(
     image = unlist(lapply(categories, function(cat) {
-        pins::pin_get(cat, board = "imagenet", extract = TRUE)
+        pins::pin_get(cat, board = "imagenet", download = FALSE)
     })),
     category = unlist(lapply(categories, function(cat) {
-        rep(cat, length(pins::pin_get(cat, board = "imagenet", extract = TRUE)))
+        rep(cat, length(pins::pin_get(cat, board = "imagenet", download = FALSE)))
     })),
     categories = categories
 )
+
+alexnet::alexnet_train(data = data)
 ```
 
 ## Training Distributed
