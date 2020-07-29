@@ -1,4 +1,4 @@
-FROM mlverse/mlverse-notebook-base:version-0.2.3
+FROM mlverse/mlverse-base:version-0.2.3
 
 RUN R --quiet -e 'install.packages("tensorflow")'
 RUN R --quiet -e 'install.packages("keras")'
