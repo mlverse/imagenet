@@ -1,5 +1,7 @@
 FROM mlverse/mlverse-base:version-0.2.3
 
+USER rstudio
+
 RUN echo "Invalidate Cache: $RANDOM" && R --quiet -e 'install.packages("tensorflow")'
 RUN echo "Invalidate Cache: $RANDOM" && R --quiet -e 'install.packages("keras")'
 RUN echo "Invalidate Cache: $RANDOM" && R --quiet -e 'install.packages("sparklyr")'
