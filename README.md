@@ -107,8 +107,8 @@ tensorflow::tf$test$is_gpu_available()
 Retrieve ImageNet subset from Google Storage,
 
 ```r
-categories <- pins::pin_get("categories", board = "https://storage.googleapis.com/imagenet-pins/")
-category_one <- pins::pin_get(categories[1], board = "https://storage.googleapis.com/imagenet-pins/")
+categories <- pins::pin_get("categories", board = "https://storage.googleapis.com/r-imagenet/")
+category_one <- pins::pin_get(categories$id[1], board = "https://storage.googleapis.com/r-imagenet/")
 ```
 
 ## Training Distributed
