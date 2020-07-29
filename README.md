@@ -151,6 +151,14 @@ data <- list(
 alexnet::alexnet_train(data = data)
 ```
 
+Retrieve a proper subset of 1/16th of ImageNet,
+
+```
+categories <- categories$id[1:(length(categories$id) / 16)]
+for (category in categories)
+  pins::pin_get(category, board = "https://storage.googleapis.com/r-imagenet/", extract = TRUE)
+```
+
 ## Training Distributed
 
 Configure Spark,
