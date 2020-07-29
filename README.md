@@ -153,10 +153,24 @@ alexnet::alexnet_train(data = data)
 
 Retrieve a proper subset of 1/16th of ImageNet,
 
-```
+```r
 categories <- categories$id[1:(length(categories$id) / 16)]
 for (category in categories)
   pins::pin_get(category, board = "https://storage.googleapis.com/r-imagenet/", extract = TRUE)
+```
+
+Or in parrallel to increase download speed,
+
+```r
+install.packages("callr")
+
+procs <- lapply(categories, function(cat)
+  callr::r_bg(function(cat) {
+    pins::pin_get(cat, board = "https://storage.googleapis.com/r-imagenet/", extract = TRUE)
+  }, args = list(cat))
+)
+  
+invisible(processx::poll(procs, -1))
 ```
 
 ## Training Distributed
