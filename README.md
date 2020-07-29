@@ -116,9 +116,11 @@ alexnet::alexnet_train()
 Retrieve ImageNet subset from Google Storage,
 
 ```r
-categories <- pins::pin_get("categories", board = "https://storage.googleapis.com/r-imagenet/")
-category_one <- pins::pin_get(categories$id[1], board = "https://storage.googleapis.com/r-imagenet/", extract = TRUE)
-category_two <- pins::pin_get(categories$id[2], board = "https://storage.googleapis.com/r-imagenet/", extract = TRUE)
+pins::board_register_datatxt("https://storage.googleapis.com/r-imagenet/", "imagenet")
+
+categories <- pins::pin_get("categories", board = "imagenet")
+category_one <- pins::pin_get(categories$id[1], board = "imagenet", extract = TRUE)
+category_two <- pins::pin_get(categories$id[2], board = "imagenet", extract = TRUE)
 
 tibble::as_tibble(category_one)
 ```
@@ -156,21 +158,34 @@ Retrieve a proper subset of 1/16th of ImageNet,
 ```r
 categories <- categories$id[1:(length(categories$id) / 16)]
 for (category in categories)
-  pins::pin_get(category, board = "https://storage.googleapis.com/r-imagenet/", extract = TRUE)
+  pins::pin_get(category, board = "imagenet", extract = TRUE)
 ```
 
 Or in parrallel to increase download speed,
 
 ```r
-install.packages("callr")
-
 procs <- lapply(categories, function(cat)
   callr::r_bg(function(cat) {
-    pins::pin_get(cat, board = "https://storage.googleapis.com/r-imagenet/", extract = TRUE)
+    pins::board_register_datatxt("https://storage.googleapis.com/r-imagenet/", "imagenet")
+    pins::pin_get(cat, board = "imagenet", extract = TRUE)
   }, args = list(cat))
 )
   
-invisible(processx::poll(procs, -1))
+while (any(sapply(procs, function(p) p$is_alive()))) Sys.sleep(1)
+```
+
+We can then prepare the paratition for training, and train:
+
+```
+data <- list(
+    image = unlist(lapply(categories, function(cat) {
+        pins::pin_get(cat, board = "imagenet", extract = TRUE)
+    })),
+    category = unlist(lapply(categories, function(cat) {
+        rep(cat, length(pins::pin_get(cat, board = "imagenet", extract = TRUE)))
+    })),
+    categories = categories
+)
 ```
 
 ## Training Distributed
