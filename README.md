@@ -230,31 +230,69 @@ strategy <- tf$distribute$MirroredStrategy(cross_device_ops = tf$distribute$Redu
 alexnet::alexnet_train(data = data, strategy = strategy, parallel = 6)
 ```
 
+## Distributed Dry Run
+
+Training over the second partition,
+
+```
+pins::board_register_datatxt("https://storage.googleapis.com/r-imagenet/", "imagenet")
+
+categories <- pins::pin_get("categories", board = "imagenet")
+categories <- categories$id[(floor(length(categories$id) / 16)):(2*length(categories$id) / 16)]
+```
+
+Followed by code similar to the previous section.
+
 ## Training Distributed
 
 Configure Spark,
 
-```
+```r
 install.packages(sparklyr)
 spark_install()
 ```
 
 Configure Spark Master,
 
-```
+```r
 /home/rstudio/spark/spark-2.4.3-bin-hadoop2.7/sbin/start-master.sh
 ```
 
 Configure Spark Worker,
 
-```
+```r
 /home/rstudio/spark/spark-2.4.3-bin-hadoop2.7/sbin/start-slave.sh spark://tfimagenet.c.rstudio-cloudml.internal:7077
 ```
 
 Connect to Spark from R driver,
 
-```
+```r
 sc <- spark_connect(master = "spark://tfimagenet.c.rstudio-cloudml.internal:7077", spark_home = "/home/rstudio/spark/spark-2.4.3-bin-hadoop2.7/")
+```
+
+Then we can run across multiple nodes with code similar to,
+
+```r
+library(sparklyr)
+sc <- spark_connect(master = "<master>")
+
+sdf_len(sc, 3, repartition = 3) %>%
+  spark_apply(function(df, barrier) {
+    tryCatch({
+      library(tensorflow)
+      
+      Sys.setenv(TF_CONFIG = jsonlite::toJSON(list(
+        cluster = list(worker = paste(gsub(":[0-9]+$", "", barrier$address), 8000 + seq_along(barrier$address), sep = ":")),
+        task = list(type = 'worker', index = barrier$partition)
+      ), auto_unbox = TRUE))
+      
+      strategy <- tf$distribute$experimental$MultiWorkerMirroredStrategy()
+      
+      data <- alexnet::alexnet_imagenet(partition = barrier$partition, partitions = 16)
+      alexnet::alexnet_train(data = data, strategy = strategy, parallel = 6)
+    }, error = function(e) e$message)
+  }, barrier = TRUE, columns = c(address = "character"), ) %>%
+  collect()
 ```
 
 ## Other Resources
