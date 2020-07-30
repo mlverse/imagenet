@@ -225,7 +225,7 @@ data <- list(
 )
 
 library(tensorflow)
-strategy <- tf$distribute$MirroredStrategy()
+strategy <- tf$distribute$MirroredStrategy(cross_device_ops = tf$distribute$ReductionToOneDevice)
 
 alexnet::alexnet_train(data = data, strategy = strategy)
 ```
