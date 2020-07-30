@@ -176,7 +176,7 @@ while (any(sapply(procs, function(p) p$is_alive()))) Sys.sleep(1)
 
 We can then prepare the paratition for training, and train:
 
-```
+```r
 pins::board_register_datatxt("https://storage.googleapis.com/r-imagenet/", "imagenet")
 data <- list(
     image = unlist(lapply(categories, function(cat) {
@@ -189,6 +189,45 @@ data <- list(
 )
 
 alexnet::alexnet_train(data = data)
+```
+
+## Multi GPU Dry Run
+
+Similar setup using 4-GPUs instead,
+
+```r
+docker pull mlverse/imagenet:version-0.0.2
+docker run --gpus all --network host -v /mnt/disks/localssd:/localssd -d mlverse/imagenet:version-0.0.2
+```
+
+```r
+pins::board_register_datatxt("https://storage.googleapis.com/r-imagenet/", "imagenet")
+
+categories <- pins::pin_get("categories", board = "imagenet")
+categories <- categories$id[1:(length(categories$id) / 16)]
+
+procs <- lapply(categories, function(cat)
+  callr::r_bg(function(cat) {
+    pins::board_register_datatxt("https://storage.googleapis.com/r-imagenet/", "imagenet")
+    pins::pin_get(cat, board = "imagenet", extract = TRUE)
+  }, args = list(cat))
+)
+while (any(sapply(procs, function(p) p$is_alive()))) Sys.sleep(1)
+
+data <- list(
+    image = unlist(lapply(categories, function(cat) {
+        pins::pin_get(cat, board = "imagenet", download = FALSE)
+    })),
+    category = unlist(lapply(categories, function(cat) {
+        rep(cat, length(pins::pin_get(cat, board = "imagenet", download = FALSE)))
+    })),
+    categories = categories
+)
+
+library(tensorflow)
+strategy <- tf$distribute$MirroredStrategy()
+
+alexnet::alexnet_train(data = data, strategy = strategy)
 ```
 
 ## Training Distributed
