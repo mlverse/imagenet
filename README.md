@@ -95,6 +95,7 @@ Install dependencies,
 install.packages("tensorflow")
 install.packages("keras")
 install.packages("remotes")
+install.packages("callr")
 
 remotes::install_github("rstudio/pins")
 remotes::install_github("r-tensorflow/alexnet")
